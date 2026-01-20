@@ -1,23 +1,50 @@
 #include <Arduino.h>
 #include <iostream>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
 using namespace std;
 
 // LED1 an GPIO25, LED2 an GPIO26 angeschlossen
-// LEDs an GPIO25 und GPIO26
 int led1 = 25;
 int led2 = 26;
 int buttonPin = 33;
 
-// Blinkgeschwindigkeiten (in Millisekunden)
-int interval1 = 1000;   // LED1 wechselt alle 0,5 Sekunden
-int interval2 = 300;   // LED2 wechselt alle 0,3 Sekunden
-
-// Variablen, um zu speichern, wann zuletzt geschaltet wurde
-unsigned long letzteZeit1 = 0;
-unsigned long letzteZeit2 = 0;
+int ScreenSda = 35;
+int ScreenScl = 32;
 
 // Zustände der LEDs (an/aus)
-bool toggled = false;
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+
+#define NUMFLAKES 10
+
+int licht = analogRead(32);
+
+void showWelcomePage() {
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setTextColor(WHITE);
+  display.setCursor(0, 10);
+  display.print("Wilkommen");
+  display.display();
+}
+
+
+void Showlightpage() {
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setTextColor(WHITE);
+  display.setCursor(0, 10);
+  display.print(map(analogRead(32), 0, 4095, 0, 100));
+  display.println("%");
+  display.setTextSize(1);
+  display.println(analogRead(32));
+  display.display();
+}
 
 void setup() {
   // Beide Pins als Ausgänge einstellen
@@ -26,82 +53,46 @@ void setup() {
   pinMode(buttonPin, INPUT_PULLUP);
   Serial.begin(9600);
   Serial.println("Programm Gestartet.");
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3c)) {
+    Serial.println("Fehler beim initialisieren des Displays");
+    for(;;);
+  }
+  display.clearDisplay();
+  showWelcomePage();
 }
 
+int lastState = HIGH;
+
+bool toggled = false;
+
+int page = 0;
+
+
 void loop() {
-  // // Erste LED an, zweite LED aus
-  // digitalWrite(led1, HIGH);
-  // digitalWrite(led2, LOW);
-  // delay(500);  // kurze Pause
+  // LICHTSENSOR
 
-  // // Erste LED aus, zweite LED an
-  // digitalWrite(led1, LOW);
-  // digitalWrite(led2, HIGH);
-  // delay(500);  // gleiche Pause
-  // // aktuelle Zeit merken
-  // unsigned long jetzt = millis();
-
-  // --- LED1 prüfen ---
-  // if (jetzt - letzteZeit1 >= interval1) {
-  //   // Zustand umschalten
-  //   led1An = !led1An;
-  //   digitalWrite(led1, led1An ? HIGH : LOW);
-  //   // Zeit merken
-  //   letzteZeit1 = jetzt;
-  // }
-
-  // // --- LED2 prüfen ---
-  // if (jetzt - letzteZeit2 >= interval2) {
-  //   led2An = !led2An;
-  //   digitalWrite(led2, led2An ? HIGH : LOW);
-  //   letzteZeit2 = jetzt;
-  // }
-
-  int buttonState = digitalRead(buttonPin);
-  
-  // LICHT TOGGLE
-
-  int lastState = HIGH;
-  int currentState = HIGH;
-
-      if (buttonState == LOW) {
-        Serial.print("Current State: ");
-        Serial.println(currentState);
-        if (toggled != true) {
-          digitalWrite(led1, HIGH);
-          digitalWrite(led2, HIGH);
-        }
-        if (toggled == true) {
-          digitalWrite(led1, LOW);
-          digitalWrite(led2, LOW);
-        }
-      }
-      if (buttonState == HIGH) {
-        if (toggled == false) {
-          toggled = true;
-        } else {
-          toggled = false;
-        }
-      }
-  // int clickcounter = 0;
-
-  // if (buttonState == LOW) {
-  //   ++clickcounter;
-  //   digitalWrite(led1, HIGH);
-  //   delay(1000);
-  //   digitalWrite(led1, LOW);
-  //   if (clickcounter == 2) {
-  //     if (toggled == false) {
-  //       digitalWrite(led2, HIGH);
-  //       toggled = true;
-  //     } else {
-  //       digitalWrite(led2, LOW);
-  //       toggled = false;
-  //     }
-  //     delay(200);
-  //     clickcounter = 0;
-  
-  //   }
-  // }
-
+if (digitalRead(buttonPin) == LOW) {
+    if (lastState == HIGH) {
+      lastState = LOW;
+      Serial.println("Button pressed");
+      ++page;
+      display.clearDisplay();
+      display.display();
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, HIGH);
+      delay(100);
+      digitalWrite(led1 ,LOW);
+      digitalWrite(led2, LOW);
+    }
+    // Serial.println(lastState);
+  } else {
+    lastState = HIGH;
+    // Serial.println(lastState);
+  }
+  if (page >= 2) page = 0;
+  if (page == 0) {
+    showWelcomePage();
+  } else if (page == 1) {
+    Showlightpage();
+  }
 }
