@@ -1,2 +1,2 @@
-const char* WIFI_SSID = "Jermaine's iPhone";
-const char* WIFI_PASSWORD = "etistinkt";
+const char* WIFI_SSID = "nb441";
+const char* WIFI_PASSWORD = "JanitzaPraktikum";

@@ -51,26 +51,37 @@ void showWelcomePage() {
   display.setTextSize(2);
   display.setTextColor(WHITE);
   display.setCursor(0, 10);
-  display.print("Wilkommen");
+  display.println("Wilkommen");
+  display.setTextSize(0.8);
+  display.println("Geräte-IP: ");
+  display.println(WiFi.localIP());
+  display.println("Wlan Status: ");
+  if (WiFi.status() == WL_CONNECTED) {
+    display.println("Verbunden");
+  } else {
+    display.println("Getrennt");
+  }
   display.display();
 }
 
 
 void Showlightpage() {
   display.clearDisplay();
-  display.setTextSize(2);
+  display.setTextSize(0.7);
   display.setTextColor(WHITE);
   display.setCursor(0, 10);
+  display.println("Helligkeit");
+  display.setTextSize(2);
   display.print(map(analogRead(32), 0, 4095, 0, 100));
   display.println("%");
   display.setTextSize(1);
-  display.println(analogRead(32));
+  display.print(analogRead(33));
+  display.print(" (0-4095)");
   display.display();
   delay(250);
 }
 
 void setup() {
-  // Beide Pins als Ausgänge einstellen
   pinMode(led1, OUTPUT);
   pinMode(led2, OUTPUT);
   pinMode(buttonPin, INPUT_PULLUP);
@@ -92,6 +103,10 @@ void setup() {
   showWelcomePage();
   delay(5000);
   Serial.println(WiFi.localIP());
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.print("Verbunden");
+  }
+  
 }
 
 void showtempPage() {
@@ -121,18 +136,18 @@ void flash_light() {
 }
 
 void loop() {
-  
+
+  if (digitalRead(33) == LOW) {
+    Serial.println("funktioniert");
+  }
 
   if (digitalRead(buttonPin) == LOW) {
     if (lastState == HIGH) {
         lastState = LOW;
+        Serial.println(page);
         ++page;
-        Serial.println("Button pressed");
         display.clearDisplay();
         display.display();
-        flash_light();
-        Serial.println(WiFi.localIP());
-        Serial.println(WiFi.status());
     }
       // Serial.println(lastState);
   } else {
