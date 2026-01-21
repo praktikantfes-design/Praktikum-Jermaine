@@ -16,8 +16,10 @@ WebServer server(80);
                     */ 
 
 int lastState = HIGH;
+int currentState = HIGH;
 int page = 0;
 bool toggled = false;
+bool ledAn = false;
 
 int led1 = 25;
 int led2 = 26;
@@ -104,11 +106,13 @@ void setup() {
   delay(5000);
   Serial.println(WiFi.localIP());
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.print("Verbunden");
+    Serial.println("Verbunden");
   }
   
 }
 
+
+/*
 void showtempPage() {
   display.clearDisplay();
   display.setTextSize(1);
@@ -123,6 +127,7 @@ void showtempPage() {
   display.display();
 }
 
+
 void flash_light() {
       digitalWrite(led1, HIGH);
       delay(25);
@@ -134,32 +139,37 @@ void flash_light() {
       delay(10);
       digitalWrite(led1, LOW);
 }
+*/
+
 
 void loop() {
 
-  if (digitalRead(33) == LOW) {
-    Serial.println("funktioniert");
+currentState = digitalRead(buttonPin);
+
+  // prüfen, ob sich der Zustand geändert hat
+  // Wenn sich der Zustand geändert hat
+  if (currentState != lastState) {
+    // wenn der Button gerade gedrückt wurde (LOW)
+    // Wenn Button gedrückt wurde (LOW)
+    if (currentState == LOW) {
+      // LED-Zustand umschalten
+      ledAn = !ledAn; // LED-Zustand umschalten
+      digitalWrite(led1, ledAn ? HIGH : LOW);
+
+      // Zustände im seriellen Monitor ausgeben
+      Serial.print("Button gedrückt → LED ist jetzt: ");
+      Serial.println(ledAn ? "AN" : "AUS");
+    }
   }
 
-  if (digitalRead(buttonPin) == LOW) {
-    if (lastState == HIGH) {
-        lastState = LOW;
-        Serial.println(page);
-        ++page;
-        display.clearDisplay();
-        display.display();
-    }
-      // Serial.println(lastState);
-  } else {
-    lastState = HIGH;
-    // Serial.println(lastState);
-  }
-  if (page >= 3) page = 0;
+  if (page == 2) page = 0;
   if (page == 0) {
       showWelcomePage();
+      // Serial.println(page);
   } else if (page == 1) {
       Showlightpage();
-  } else if (page == 2) {
-    showtempPage();
+      // Serial.println(page);
   }
+
+  lastState = digitalRead(buttonPin);
 }
