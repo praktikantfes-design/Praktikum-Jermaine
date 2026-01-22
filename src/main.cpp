@@ -7,6 +7,7 @@
 #include <WiFi.h>
 #include <wifi_credentials.h>
 #include <WebServer.h>
+#include <DNSServer.h>
 using namespace std;
 
 WebServer server(80);
@@ -47,9 +48,80 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 float hum = dht.readHumidity();
 float temp = dht.readTemperature();
 
+const char* AP_SSID = "ESP32-Setup";
+const char* AP_PASS = "etistinkt";
+
+const char HTML_INDEX[] PROGMEM = R"HTML(
+<!DOCTYPE html><html lang="de"><meta charset="utf-8">
+<title>ESP32 WLAN Setup</title>
+<style>body{font-family:sans-serif;margin:2rem}input{padding:.5rem;margin:.3rem 0;width:100%}button{padding:.6rem 1rem}</style>
+<h2>WLAN verbinden</h2>
+<form method="POST" action="/connect">
+  <label>SSID</label><br>
+  <input name="ssid" placeholder="WLAN-Name" required><br>
+  <label>Passwort</label><br>
+  <input name="pass" type="password" placeholder="WLAN-Passwort"><br><br>
+  <button type="submit">Verbinden</button>
+</form>
+<p>Diese Seite erreichst du unter <b>http://192.168.4.1</b></p>
+)HTML";
+
+
 /*
     Funktionen
                 */
+
+void handleRoot() {
+  String page = "ESP32 Webserver\n";
+  page += "Endpoints:\n";
+  page += " /temperature  -> Temperatur in °C\n";
+  page += " /humidity     -> Luftfeuchtigkeit in %\n";
+  server.send(200, "text/plain", HTML_INDEX);
+  
+}
+
+String ssid = server.arg("ssid");
+String pass = server.arg("pass");
+
+void handleConnect() {
+
+  server.send(200, "text/html",
+  "<html><meta charset='utf-8'><body>"
+  "<h3>Verbinde mit WLAN...</h3>"
+  "<p>SSID: " + ssid + "</p>"
+  "<p>Bitte 5-10 Sekuden warten.</p>"
+  "</body></html>");
+  
+  WiFi.mode(WIFI_AP_STA);
+  WiFi.begin(ssid.c_str(), pass.c_str());
+  
+}
+
+unsigned long start = millis();
+const unsigned long timeout = 15000;
+
+void handleTemperature() {
+  float t = temp;
+  server.send(200, "text/plain", String(t));
+}
+
+void handleHumidity() {
+  float h = hum;
+  server.send(200, "text/plain", String(h));
+  while (WiFi.status() != WL_CONNECTED && millis() - start < timeout) {
+    delay(250);
+  }
+
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("Verbunden mit: " + ssid);
+    Serial.print("IP im Heimnetz: "); Serial.println(WiFi.localIP());
+
+    WiFi.softAPdisconnect(true);
+  } else {
+    Serial.println("Verbindung fehlgeschlagen.");
+  }
+}
+
 
 void showWelcomePage() {
   display.clearDisplay();
@@ -92,8 +164,8 @@ void setup() {
   pinMode(led2, OUTPUT);
   pinMode(forwardButton, INPUT_PULLUP);
   pinMode(backwardButton, INPUT_PULLUP);
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   dht.begin();
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.begin(9600);
   Serial.println("Programm Gestartet.");
   if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3c)) {
@@ -103,8 +175,27 @@ void setup() {
 
   server.on("/temperature", []() {
       server.send(200, "text/plain", String(temp));
+      Serial.println("something");
   });
-  server.begin();
+  Serial.println("Verbinde mit WLAN: "); Serial.println(WIFI_SSID);
+  
+  int versuch = 0;
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  
+  // delay(200);
+  // WiFi.mode(WIFI_AP);
+  // bool ok = WiFi.softAP(AP_SSID, AP_PASS);
+  // IPAddress apIP = WiFi.softAPIP();
+  // Serial.println(ok ? "AP gestartet." : "AP-Start Fehler!");
+  // Serial.print("AP SSID: "); Serial.println(AP_SSID);
+  // Serial.print("AP IP:   "); Serial.println(apIP);
+
+  // server.on("/", handleRoot);
+  // server.on("/connect", HTTP_POST, handleConnect);
+  // server.onNotFound([](){server.send(200, "text/html", HTML_INDEX); });
 
   display.clearDisplay();
   showWelcomePage();
@@ -113,6 +204,7 @@ void setup() {
   if (WiFi.status() == WL_CONNECTED) {
     Serial.println("Verbunden");
   }
+  server.begin();
 }
 
 void showtempPage() {
@@ -170,6 +262,8 @@ void loop() {
     }
     
   }
+
+  server.handleClient();
 
   if (page == 0) {
     showWelcomePage();
