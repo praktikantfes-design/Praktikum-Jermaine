@@ -51,21 +51,6 @@ float temp = dht.readTemperature();
 const char* AP_SSID = "ESP32-Setup";
 const char* AP_PASS = "etistinkt";
 
-const char HTML_INDEX[] PROGMEM = R"HTML(
-<!DOCTYPE html><html lang="de"><meta charset="utf-8">
-<title>ESP32 WLAN Setup</title>
-<style>body{font-family:sans-serif;margin:2rem}input{padding:.5rem;margin:.3rem 0;width:100%}button{padding:.6rem 1rem}</style>
-<h2>WLAN verbinden</h2>
-<form method="POST" action="/connect">
-  <label>SSID</label><br>
-  <input name="ssid" placeholder="WLAN-Name" required><br>
-  <label>Passwort</label><br>
-  <input name="pass" type="password" placeholder="WLAN-Passwort"><br><br>
-  <button type="submit">Verbinden</button>
-</form>
-<p>Diese Seite erreichst du unter <b>http://192.168.4.1</b></p>
-)HTML";
-
 
 /*
     Funktionen
@@ -180,10 +165,10 @@ void setup() {
   Serial.println("Verbinde mit WLAN: "); Serial.println(WIFI_SSID);
   
   int versuch = 0;
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
+  // while (WiFi.status() != WL_CONNECTED) {
+  //   delay(500);
+  //   Serial.print(".");
+  // }
   
   // delay(200);
   // WiFi.mode(WIFI_AP);
