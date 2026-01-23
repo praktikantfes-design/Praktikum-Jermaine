@@ -7,6 +7,11 @@
             const text = await response.text();
             document.getElementById("temp").textContent = "Temperatur: " + text + " °C";
         }
+        async function updateHum() {
+            const response = await fetch(`${espIP}humidity`);
+            const text = await response.text();
+            document.getElementById("hum").textContent = "Luftfeuchtigkeit: " + text + " %";
+        }
 
         // sofort aufrufen und danach jede Sekunde wiederholen     
         updateTemp();
@@ -24,7 +29,7 @@
     <body>
         <div class="informationen">
             <p class="glow2" id="temp">Temperatur: </p>
-            <p class="glow2">Luftfeuchtigkeit: --°C</p>
+            <p class="glow2" id="hum">Luftfeuchtigkeit: </p>
         </div>
         <img src="janitza-logo_white.png" class="logo">
         <div class="glow3">

@@ -38,7 +38,7 @@ int licht = analogRead(34);
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define DHTTYPE DHT11
-#define DHTPIN 25
+#define DHTPIN 27
 DHT dht(DHTPIN,DHTTYPE);
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
@@ -90,6 +90,12 @@ void handleTemperature() {
   addCORS();
   float t = dht.readTemperature();  // °C
   server.send(200, "text/plain", String(t));
+}
+
+void handleHumidity() {
+  addCORS();
+  float h = dht.readHumidity();  
+  server.send(200, "text/plain", String(h));
 }
 
 void handleRoot() {
@@ -197,6 +203,8 @@ void setup() {
   server.on("/temperature", HTTP_GET, handleTemperature);
   server.on("/temperature", HTTP_OPTIONS, handleOptions);
 
+    server.on("/humidity", HTTP_GET, handleHumidity);
+  server.on("/humidity", HTTP_OPTIONS, handleOptions);
 
   server.on("/temperature", handleTemperature);
   server.on("/login", handleRoot);
