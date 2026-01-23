@@ -38,7 +38,7 @@ int licht = analogRead(34);
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 #define DHTTYPE DHT11
-#define DHTPIN 35
+#define DHTPIN 25
 DHT dht(DHTPIN,DHTTYPE);
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
@@ -48,8 +48,8 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 float hum = dht.readHumidity();
 float temp = dht.readTemperature();
 
-const char* AP_SSID = "ESP32-Setup";
-const char* AP_PASS = "12345678";
+const char* AP_SSID = "ESP32-Setup Praktikum";
+const char* AP_PASS = "etistinkt";
 
 /*
     Funktionen
@@ -70,16 +70,36 @@ const char HTML_INDEX[] PROGMEM = R"HTML(
 <p>Diese Seite erreichst du unter <b>http://192.168.4.1</b></p>
 )HTML";
 
+void addCORS() {
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  server.sendHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  server.sendHeader("Access-Control-Allow-Headers", "Content-Type");
+}
+
+void handleOptions() {
+  addCORS();
+  server.send(204);
+}
+
+void handleStatus() {
+  addCORS();
+  server.send(200, "application/json", "{\"ok\":true}");
+}
+
+void handleTemperature() {
+  addCORS();
+  float t = dht.readTemperature();  // °C
+  server.send(200, "text/plain", String(t));
+}
+
 void handleRoot() {
   server.send(200, "text/html", HTML_INDEX);
 }
-
 
 void handleConnect() {
   String ssid = server.arg("ssid");
   String pass = server.arg("pass");
 
-  // Kurze Antwortseite anzeigen (Ladebildschirm)
   server.send(200, "text/html",
               "<html><meta charset='utf-8'><body>"
               "<h3>Verbinde mit WLAN...</h3>"
@@ -87,7 +107,6 @@ void handleConnect() {
               "<p>Bitte 5–10 Sekunden warten.</p>"
               "</body></html>");
 
-  // STA-Modus und Verbindung versuchen
   WiFi.mode(WIFI_AP_STA);
   WiFi.begin(ssid.c_str(), pass.c_str());
 
@@ -98,7 +117,6 @@ void handleConnect() {
     delay(250);
   }
 
-  // Ergebnis ausgeben
   if (WiFi.status() == WL_CONNECTED) {
     Serial.println("Verbunden mit: " + ssid);
     Serial.print("IP im Heimnetz: "); Serial.println(WiFi.localIP());
@@ -110,7 +128,6 @@ void handleConnect() {
     Serial.println("Verbindung fehlgeschlagen.");
   }
 }
-
 
 void showWelcomePage() {
   display.clearDisplay();
@@ -150,6 +167,7 @@ void Showlightpage() {
 
 void setup() {
   Serial.begin(9600);
+  pinMode(25, INPUT);
   dht.begin();
   delay(200);
 
@@ -173,9 +191,21 @@ void setup() {
   Serial.print("AP SSID: "); Serial.println(AP_SSID);
   Serial.print("AP IP:   "); Serial.println(apIP);
 
-  server.on("/", handleRoot);
+  server.on("/status", HTTP_GET, handleStatus);
+  server.on("/status", HTTP_OPTIONS, handleOptions);
+
+  server.on("/temperature", HTTP_GET, handleTemperature);
+  server.on("/temperature", HTTP_OPTIONS, handleOptions);
+
+
+  server.on("/temperature", handleTemperature);
+  server.on("/login", handleRoot);
   server.on("/connect", HTTP_POST, handleConnect);
-  server.onNotFound([](){ server.send(200, "text/html", HTML_INDEX); });
+  server.onNotFound([](){ 
+    server.send(404, "text/plain", "Not found"); 
+    if (server.method() == HTTP_OPTIONS) { handleOptions(); return; }
+    addCORS();
+  });
 
   server.begin();
   Serial.println("HTTP-Server bereit.");
@@ -192,7 +222,7 @@ void showtempPage() {
   display.setCursor(0, 10);
   display.print("Temperatur: ");
   display.print(temp);
-  display.println("°C");
+  display.println(" Grad C");
   display.println("Luftfeuchtigkeit: ");
   display.print(hum);
   display.print("%");

@@ -1,4 +1,17 @@
 <html>
+      <script>    // IP-Adresse des ESP32 hier eintragen:    
+        const espIP = "http://10.42.0.208/";  // <- deine ESP32-IP!    
+
+        async function updateTemp() {
+            const response = await fetch(`${espIP}temperature`);
+            const text = await response.text();
+            document.getElementById("temp").textContent = "Temperatur: " + text + " °C";
+        }
+
+        // sofort aufrufen und danach jede Sekunde wiederholen     
+        updateTemp();
+        setInterval(updateTemp, 1000); 
+    </script>
     <head>
         <title>Janitza Praktikum</title>
         <link rel="stylesheet" href="style.css">
@@ -10,8 +23,8 @@
     </header>
     <body>
         <div class="informationen">
-            <p class="glow2">Temperatur: </p>
-            <p class="glow2">Luftfeuchtigkeit: </p>
+            <p class="glow2" id="temp">Temperatur: </p>
+            <p class="glow2">Luftfeuchtigkeit: --°C</p>
         </div>
         <img src="janitza-logo_white.png" class="logo">
         <div class="glow3">
