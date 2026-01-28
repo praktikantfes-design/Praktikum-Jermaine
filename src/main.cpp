@@ -172,6 +172,33 @@ void Showlightpage() {
   delay(250);
 }
 
+void showtempPage() {
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.setCursor(0, 10);
+  display.print("Temperatur: ");
+  display.print(dht.readTemperature());
+  display.println("C");
+  display.print("Luftfeuchte: ");
+  display.print(dht.readHumidity());
+  display.print("%");
+  display.display();
+}
+
+void flash_light() {
+  digitalWrite(led1, HIGH);
+  digitalWrite(led2, HIGH);
+  delay(25);
+  digitalWrite(led1 ,LOW);
+  digitalWrite(led2, LOW);
+  
+}
+
+/* 
+    SETUP
+            */
+
 void setup() {
   Serial.begin(9600);
   pinMode(25, INPUT);
@@ -191,7 +218,6 @@ void setup() {
   pinMode(led2, OUTPUT);
   pinMode(forwardButton, INPUT_PULLUP);
   pinMode(backwardButton, INPUT_PULLUP);
-
 
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   Serial.println(ok ? "AP gestartet." : "AP-Start FEHLER!");
@@ -219,36 +245,12 @@ void setup() {
   server.begin();
   Serial.println("HTTP-Server bereit.");
 
-
   display.clearDisplay();
   showWelcomePage();
 }
 
-void showtempPage() {
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
-  display.setCursor(0, 10);
-  display.print("Temperatur: ");
-  display.print(dht.readTemperature());
-  display.println(" C");
-  display.print("Luftfeuchte: ");
-  display.print(dht.readHumidity());
-  display.print("%");
-  display.display();
-}
-
-void flash_light() {
-  digitalWrite(led1, HIGH);
-  digitalWrite(led2, HIGH);
-  delay(25);
-  digitalWrite(led1 ,LOW);
-  digitalWrite(led2, LOW);
-
-}
-
 void loop() {
-
+  
   lastState1 = currentState1;
   currentState1 = digitalRead(33);
 
@@ -266,7 +268,6 @@ void loop() {
       Serial.println("Fwd");
       delay(50);
     }
-    
   }
 
   if (currentState2 != lastState2) {
