@@ -143,14 +143,15 @@ void showWelcomePage() {
   display.setCursor(0, 10);
   display.println("Wilkommen (1)");
   display.setTextSize(0.8);
-  display.println("Geraete-IP: ");
   display.println(WiFi.localIP());
-  display.println("Wlan Status: ");
   if (WiFi.status() == WL_CONNECTED) {
     display.println("Verbunden");
+    display.print("SSID: ");
+    display.println(server.arg("ssid"));
   } else {
     display.println("Getrennt");
   }
+  display.println("http://192.168.4.1");
   display.display();
 }
 
@@ -203,7 +204,7 @@ void setup() {
   server.on("/temperature", HTTP_GET, handleTemperature);
   server.on("/temperature", HTTP_OPTIONS, handleOptions);
 
-    server.on("/humidity", HTTP_GET, handleHumidity);
+  server.on("/humidity", HTTP_GET, handleHumidity);
   server.on("/humidity", HTTP_OPTIONS, handleOptions);
 
   server.on("/temperature", handleTemperature);
@@ -229,10 +230,10 @@ void showtempPage() {
   display.setTextColor(WHITE);
   display.setCursor(0, 10);
   display.print("Temperatur: ");
-  display.print(temp);
-  display.println(" Grad C");
-  display.println("Luftfeuchtigkeit: ");
-  display.print(hum);
+  display.print(dht.readTemperature());
+  display.println(" C");
+  display.print("Luftfeuchte: ");
+  display.print(dht.readHumidity());
   display.print("%");
   display.display();
 }
