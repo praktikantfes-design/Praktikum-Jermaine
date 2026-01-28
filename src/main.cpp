@@ -48,8 +48,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 float hum = dht.readHumidity();
 float temp = dht.readTemperature();
 
-const char* AP_SSID = "ESP32-Setup Praktikum";
-const char* AP_PASS = "etistinkt";
+
 
 /*
     Funktionen
@@ -96,6 +95,14 @@ void handleHumidity() {
   addCORS();
   float h = dht.readHumidity();  
   server.send(200, "text/plain", String(h));
+}
+
+void handleBrightness() {
+  addCORS();
+  float brightnessinpercent = map(analogRead(34), 0, 4095, 0, 100);
+  float regularbrightness = analogRead(34);
+  server.send(200, "text/plain", String(brightnessinpercent));
+  server.send(200, "text/plain", String(regularbrightness));
 }
 
 void handleRoot() {
@@ -233,7 +240,8 @@ void setup() {
   server.on("/humidity", HTTP_GET, handleHumidity);
   server.on("/humidity", HTTP_OPTIONS, handleOptions);
 
-  server.on("/temperature", handleTemperature);
+  server.on("/brightness", HTTP_GET, handleBrightness);
+  server.on("/brightness", HTTP_OPTIONS, handleOptions);
   server.on("/login", handleRoot);
   server.on("/connect", HTTP_POST, handleConnect);
   server.onNotFound([](){ 

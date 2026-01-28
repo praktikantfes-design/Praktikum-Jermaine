@@ -12,12 +12,19 @@
             const text = await response.text();
             document.getElementById("hum").textContent = "Luftfeuchtigkeit: " + text + " %";
         }
+        async function updateLight() {
+            const response = await fetch(`${espIP}brightness`);
+            const text = await response.text();
+            document.getElementById("bright").textContent = "Helligkeit: " + text + " %";
+        }
 
         // sofort aufrufen und danach jede Sekunde wiederholen     
         updateTemp();
         setInterval(updateTemp, 1000);
         updateHum();
-        setInterval(updateHum, 1000); 
+        setInterval(updateHum, 1000);
+        updateLight();
+        setInterval(updateLight, 500); 
     </script>
     <head>
         <title>Janitza Praktikum</title>
@@ -32,6 +39,7 @@
         <div class="informationen">
             <p class="glow2" id="temp">Temperatur: </p>
             <p class="glow2" id="hum">Luftfeuchtigkeit: </p>
+            <p class="glow2" id="bright">Helligkeit: ---% (----)</p>
         </div>
         <img src="janitza-logo_white.png" class="logo">
         <div class="glow3">
