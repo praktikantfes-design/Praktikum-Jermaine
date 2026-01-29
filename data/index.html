@@ -2,42 +2,21 @@
       <script>    // IP-Adresse des ESP32 hier eintragen:    
         const espIP = "http://10.42.0.208/";  // <- deine ESP32-IP!    
 
-        let temperature = 0;
-        let humidity = 0;
-        let brightness = 0;
-
         async function updateTemp() {
             const response = await fetch(`${espIP}temperature`);
             const text = await response.text();
-            temperature=parseFloat(text);
             document.getElementById("temp").textContent = "Temperatur: " + text + " °C";
         }
         async function updateHum() {
             const response = await fetch(`${espIP}humidity`);
             const text = await response.text();
-            humidity=parseFloat(text);
             document.getElementById("hum").textContent = "Luftfeuchtigkeit: " + text + " %";
         }
         async function updateLight() {
             const response = await fetch(`${espIP}brightness`);
             const text = await response.text();
-            brightness=parseFloat(text);
             document.getElementById("bright").textContent = "Helligkeit: " + text + " %";
         }
-
-        let comfort = 1;
-
-        async function updateComfort() {
-            if (temperature >= 21 && humidity >= 35 && brightness >= 60) {
-                document.getElementById("comfort").textContent = "Recht angenehm.";
-            } else {
-                document.getElementById("comfort").textContent = "Recht unangenehm.";
-            }
-        }
-
-
-
-
 
         // sofort aufrufen und danach jede Sekunde wiederholen     
         updateTemp();
@@ -45,14 +24,11 @@
         updateHum();
         setInterval(updateHum, 1000);
         updateLight();
-        setInterval(updateLight, 500);
-        updateComfort();
-        setInterval(updateComfort, 250);
+        setInterval(updateLight, 500); 
     </script>
     <head>
         <title>Janitza Praktikum</title>
         <link rel="stylesheet" href="style.css">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <header>
         <div class="wrapper">
@@ -64,7 +40,6 @@
             <p class="glow2" id="temp">Temperatur: </p>
             <p class="glow2" id="hum">Luftfeuchtigkeit: </p>
             <p class="glow2" id="bright">Helligkeit: ---% (----)</p>
-            <p class="glow2" id="comfort"></p>
         </div>
         <img src="janitza-logo_white.png" class="logo">
         <div class="glow3">

@@ -24,7 +24,6 @@ int page = 0;
 bool toggled = false;
 bool ledAn = false;
 
-int led1 = 25;
 int led2 = 26;
 int forwardButton = 33;
 int backwardButton = 32;
@@ -193,22 +192,15 @@ void showtempPage() {
   display.display();
 }
 
-void flash_light() {
-  digitalWrite(led1, HIGH);
-  digitalWrite(led2, HIGH);
-  delay(25);
-  digitalWrite(led1 ,LOW);
-  digitalWrite(led2, LOW);
-  
-}
-
 /* 
     SETUP
             */
 
 void setup() {
   Serial.begin(9600);
-  pinMode(25, INPUT);
+  pinMode(25, OUTPUT);
+  pinMode(26, OUTPUT); 
+  pinMode(35, OUTPUT);
   dht.begin();
   delay(200);
 
@@ -221,8 +213,6 @@ void setup() {
     for(;;);
   }
 
-  pinMode(led1, OUTPUT);
-  pinMode(led2, OUTPUT);
   pinMode(forwardButton, INPUT_PULLUP);
   pinMode(backwardButton, INPUT_PULLUP);
 
@@ -265,13 +255,24 @@ void loop() {
   lastState2 = currentState2;
   currentState2 = digitalRead(32);
 
-  digitalWrite(25, HIGH);
-  digitalWrite(26, HIGH);
+
+  if (map(analogRead(34), 0, 4095, 0, 100) >= 60) {
+    digitalWrite(25, HIGH);
+  } else {
+    digitalWrite(25, LOW);
+  }
+
+  if (dht.readTemperature() >= 21 && dht.readHumidity() >= 35 && map(analogRead(34), 0, 4095, 0, 100) >= 60) {
+    digitalWrite(26, HIGH);
+    digitalWrite(35, LOW);
+  } else {
+    digitalWrite(26, LOW);
+    digitalWrite(35, HIGH);
+  }
 
   if (currentState1 != lastState1) {
     if (currentState1 == LOW) {
       ++page;
-      flash_light();
       // Serial.println(page);
       Serial.println("Fwd");
       delay(50);
@@ -281,7 +282,6 @@ void loop() {
   if (currentState2 != lastState2) {
     if (currentState2 == LOW) {
       --page;
-      flash_light();
       // Serial.println(page);
       Serial.println("Bwd");
       delay(50);
